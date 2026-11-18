@@ -14,6 +14,6 @@ No API endpoints are approved yet.
 ## Contract inventory
 | Contract | Owner | Version | Status |
 |---|---|---|---|
-| Identity | OLAA ID | TBD | Proposed |
+| Identity | Olaa Identity (`olaa-platform`, branch 00.03) | TBD | Proposed |
 | Product API | This product | TBD | Not defined |
-| Cross-app events | OLAA Contracts | TBD | Proposed |
+| Cross-app events | Olaa Contracts (`olaa-platform/contracts/`, branch 20) | TBD | Proposed |

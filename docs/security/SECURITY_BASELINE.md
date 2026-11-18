@@ -1,7 +1,7 @@
 # Security Baseline
 
 ## Identity and access
-- Integrate through approved OLAA ID flows.
+- Integrate through approved Olaa Identity (`olaa-platform`, branch 00.03) flows.
 - Enforce authorization server-side.
 - Use least privilege and short-lived tokens where possible.
 

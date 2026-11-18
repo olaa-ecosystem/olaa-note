@@ -5,7 +5,7 @@ Each product owns its domain data. Other apps must not directly mutate another p
 
 ## Domain owner
 - This repository: product-specific domain records (to be inventoried).
-- OLAA ID: identity/account records (external contract).
+- Olaa Identity (`olaa-platform`, branch 00.03): identity/account records (external contract).
 - Shared platform: sync metadata, cross-product events and platform services, as defined by contracts.
 
 ## Data inventory (to be completed before schema work)

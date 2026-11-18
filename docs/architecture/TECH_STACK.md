@@ -16,7 +16,7 @@
 - State management strategy
 - UI primitives and design tokens
 - API client generation approach
-- Authentication SDK / OLAA ID integration
+- Authentication SDK / Olaa Identity (`olaa-platform`, branch 00.03) integration
 - Local persistence and sync approach
 - Deployment provider
 

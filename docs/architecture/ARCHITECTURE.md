@@ -11,7 +11,7 @@ Draft — foundation only; no implementation is implied.
 - Local/offline behavior and sync semantics are explicitly designed, not assumed.
 
 ## System context
-Describe actors, app boundaries, external systems, and OLAA shared-platform responsibilities.
+Describe actors, app boundaries, external systems, and Olaa shared-platform responsibilities.
 
 ## Application layers
 Presentation → Feature/Application logic → Domain → Infrastructure adapters.

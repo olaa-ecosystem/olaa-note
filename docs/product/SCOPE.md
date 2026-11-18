@@ -1,4 +1,4 @@
-# Product Scope — OLAA Note
+# Product Scope — Olaa TakeNote
 
 ## Purpose
 Independent note-taking and knowledge workspace
@@ -10,9 +10,9 @@ Notebooks, pages, rich-text notes, freeform canvas, handwriting support, PDF/ima
 Curriculum engine, language assessment engine, general-purpose habit tracking.
 
 ## Integrations
-- OLAA ID: shared authentication (contract pending).
-- OLAA API/Core: shared platform services (contracts pending).
-- Other OLAA products: optional integrations only through approved contracts.
+- Olaa Identity (`olaa-platform`, branch 00.03): shared authentication (contract pending).
+- Olaa Platform (`olaa-platform`): shared platform services (contracts pending).
+- Other Olaa products: optional integrations only through approved contracts.
 
 ## Boundary rule
 This repository owns its product domain. Other products must not directly modify its data or import its internal implementation.
