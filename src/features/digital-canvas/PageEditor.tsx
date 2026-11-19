@@ -5,6 +5,7 @@ import { HIGHLIGHT_OPACITY, strokePath } from '../inking-tools/strokePath';
 import { pageSize, type Page } from '../page-management/types';
 import { isBlank, sanitizeHtml } from '../rich-text-editor/richText';
 import { DEFAULT_TEXT_WIDTH } from '../rich-text-editor/textStyle';
+import { clearTextDraft, saveTextDraft, type TextDraft } from '../history-recovery/textDraft';
 import {
   eraseAt,
   roundPoint,
@@ -322,6 +323,7 @@ export function PageEditor({
                   autoFocus={editingId === it.id}
                   onFocus={() => setEditingId(it.id)}
                   onDone={(html) => saveText(it.id, html)}
+                  recovery={{ pageId: page.id, itemId: it.id, x: it.x, y: it.y }}
                 />
               ) : (
                 <StaticText item={it} />
@@ -345,7 +347,12 @@ export function PageEditor({
               width: Math.min(DEFAULT_TEXT_WIDTH, width - draft.x),
             }}
           >
-            <TextEditor html="" autoFocus onDone={(html) => saveText(null, html, draft)} />
+            <TextEditor
+              html=""
+              autoFocus
+              onDone={(html) => saveText(null, html, draft)}
+              recovery={{ pageId: page.id, itemId: null, x: draft.x, y: draft.y }}
+            />
           </div>
         )}
         <InkLayer items={items} width={width} height={height} />
@@ -397,17 +404,33 @@ function applyDrag(
   return { ...item, x, y };
 }
 
+/** Tapping the box of a checklist item (its left padding) ticks or unticks it. */
+function toggleCheckItem(e: React.PointerEvent): void {
+  const li = (e.target as HTMLElement).closest('li');
+  const list = li?.parentElement;
+  if (!li || !list?.hasAttribute('data-checklist')) return;
+  const left = li.getBoundingClientRect().left;
+  if (e.clientX - left > 28) return;
+  e.preventDefault();
+  if (li.getAttribute('data-checked') === 'true') li.removeAttribute('data-checked');
+  else li.setAttribute('data-checked', 'true');
+  li.closest('[contenteditable]')?.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 /** A contentEditable text box; saves (sanitised by the caller) when it loses focus. */
 function TextEditor({
   html,
   autoFocus,
   onFocus,
   onDone,
+  recovery,
 }: {
   html: string;
   autoFocus?: boolean;
   onFocus?: () => void;
   onDone: (html: string) => void;
+  /** Where to put the text back if the tab closes before it is saved. */
+  recovery: Omit<TextDraft, 'html' | 'at'>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -428,8 +451,17 @@ function TextEditor({
       aria-multiline="true"
       aria-label="Khung chữ"
       onFocus={onFocus}
-      onBlur={() => onDone(ref.current?.innerHTML ?? '')}
-      onPointerDown={(e) => e.stopPropagation()}
+      onInput={() =>
+        saveTextDraft({ ...recovery, html: ref.current?.innerHTML ?? '', at: Date.now() })
+      }
+      onBlur={() => {
+        clearTextDraft();
+        onDone(ref.current?.innerHTML ?? '');
+      }}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        toggleCheckItem(e);
+      }}
     />
   );
 }

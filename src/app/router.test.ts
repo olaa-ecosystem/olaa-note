@@ -5,6 +5,10 @@ describe('router', () => {
     for (const r of [
       { name: 'library' },
       { name: 'trash' },
+      { name: 'archive' },
+      { name: 'search', query: 'tiếng anh', tag: null },
+      { name: 'search', query: '', tag: 'từ vựng' },
+      { name: 'search', query: '', tag: null },
       { name: 'notebook', notebookId: 'a b', page: 3 },
     ] as const) {
       expect(parseRoute(routeHref(r))).toEqual(r);

@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { navigate, routeHref } from '../../app/router';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { PdfIcon, PlusIcon, TrashIcon } from '../../components/Icons';
-import { trashNotebook } from '../../stores/noteActions';
+import { ArchiveIcon, PdfIcon, PlusIcon, TrashIcon } from '../../components/Icons';
+import { setArchived, setFavorite, trashNotebook } from '../../stores/noteActions';
 import { noteStore, useNoteState } from '../../stores/noteStore';
 import { PageView } from '../digital-canvas/layers';
 import { PdfImportError } from '../document-annotation/importPdf';
@@ -37,9 +37,15 @@ export function LibraryPage() {
   const pdfInput = useRef<HTMLInputElement>(null);
 
   const notebooks = Object.values(state.notebooks)
-    .filter((n) => n.deletedAt === null)
-    .sort((a, b) => b.updatedAt - a.updatedAt);
+    .filter((n) => n.deletedAt === null && !n.archivedAt)
+    .sort(
+      (a, b) =>
+        Number(Boolean(b.favorite)) - Number(Boolean(a.favorite)) || b.updatedAt - a.updatedAt,
+    );
   const trashCount = Object.values(state.notebooks).filter((n) => n.deletedAt !== null).length;
+  const archivedCount = Object.values(state.notebooks).filter(
+    (n) => n.deletedAt === null && n.archivedAt,
+  ).length;
 
   const onPdf = async (file: File | undefined) => {
     if (!file) return;
@@ -88,6 +94,26 @@ export function LibraryPage() {
         </div>
       </header>
 
+      <form
+        className="search-bar"
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const q = new FormData(e.currentTarget).get('q');
+          navigate({ name: 'search', query: typeof q === 'string' ? q : '', tag: null });
+        }}
+      >
+        <label className="visually-hidden" htmlFor="library-search">
+          Tìm trong sổ tay
+        </label>
+        <input
+          id="library-search"
+          name="q"
+          type="search"
+          placeholder="Tìm tên sổ, chữ đã gõ, tên tệp, thẻ…"
+        />
+      </form>
+
       {importing && (
         <p className="notice" role="status">
           {importing}
@@ -129,14 +155,36 @@ export function LibraryPage() {
                     {nb.pageIds.length} trang · {formatDate(nb.updatedAt)}
                   </span>
                 </a>
-                <button
-                  type="button"
-                  className="icon-btn cover__delete"
-                  aria-label={`Xoá ${nb.title}`}
-                  onClick={() => setConfirm(nb)}
-                >
-                  <TrashIcon />
-                </button>
+                <div className="cover__actions">
+                  <button
+                    type="button"
+                    className={`icon-btn cover__star ${nb.favorite ? 'is-on' : ''}`}
+                    aria-pressed={Boolean(nb.favorite)}
+                    aria-label={`Yêu thích ${nb.title}`}
+                    onClick={() =>
+                      noteStore.update((s) => setFavorite(s, nb.id, !nb.favorite, Date.now()))
+                    }
+                  >
+                    {nb.favorite ? '★' : '☆'}
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Lưu trữ ${nb.title}`}
+                    title="Lưu trữ"
+                    onClick={() => noteStore.update((s) => setArchived(s, nb.id, true, Date.now()))}
+                  >
+                    <ArchiveIcon />
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    aria-label={`Xoá ${nb.title}`}
+                    onClick={() => setConfirm(nb)}
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
               </li>
             );
           })}
@@ -146,6 +194,11 @@ export function LibraryPage() {
       <a className="link-btn" href={routeHref({ name: 'trash' })}>
         Thùng rác{trashCount > 0 ? ` (${trashCount})` : ''}
       </a>
+      {archivedCount > 0 && (
+        <a className="link-btn" href={routeHref({ name: 'archive' })}>
+          Đã lưu trữ ({archivedCount})
+        </a>
+      )}
 
       {confirm && (
         <ConfirmDialog

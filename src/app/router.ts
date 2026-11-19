@@ -3,12 +3,20 @@ import { useSyncExternalStore } from 'react';
 export type Route =
   | { name: 'library' }
   | { name: 'trash' }
+  | { name: 'archive' }
+  | { name: 'search'; query: string; tag: string | null }
   | { name: 'notebook'; notebookId: string; page: number };
 
 /** Tiny hash router: works on any static host with no server rewrites. `page` is 1-based. */
 export function parseRoute(hash: string): Route {
   const [head, id, page] = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (head === 'trash') return { name: 'trash' };
+  if (head === 'archive') return { name: 'archive' };
+  if (head === 'search') {
+    const [, kind, value] = hash.replace(/^#\/?/, '').split('/');
+    const v = value ? decodeURIComponent(value) : '';
+    return { name: 'search', query: kind === 'q' ? v : '', tag: kind === 'tag' && v ? v : null };
+  }
   if (head === 'nb' && id) {
     const n = Number(page);
     return {
@@ -26,6 +34,11 @@ export function routeHref(route: Route): string {
       return '#/';
     case 'trash':
       return '#/trash';
+    case 'archive':
+      return '#/archive';
+    case 'search':
+      if (route.tag) return `#/search/tag/${encodeURIComponent(route.tag)}`;
+      return route.query ? `#/search/q/${encodeURIComponent(route.query)}` : '#/search';
     case 'notebook':
       return `#/nb/${encodeURIComponent(route.notebookId)}/${route.page}`;
   }

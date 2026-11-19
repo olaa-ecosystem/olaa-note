@@ -45,6 +45,15 @@ import {
 } from '../inking-tools/strokePath';
 import { PAGE_TEMPLATES, pageSize, type PageTemplate } from '../page-management/types';
 import { attachFile, insertPdf, openStoredFile } from './commands';
+import { clearTextDraft, loadTextDraft, type TextDraft } from '../history-recovery/textDraft';
+import {
+  isBlank,
+  safeHref,
+  sanitizeHtml,
+  toggleChecklistAtSelection,
+} from '../rich-text-editor/richText';
+import { DEFAULT_TEXT_WIDTH } from '../rich-text-editor/textStyle';
+import { PageMeta, SaveState } from './NotebookExtras';
 
 const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3] as const;
 
@@ -99,6 +108,7 @@ export function NotebookPage({
   const [fit, setFit] = useState(1);
   const [showPages, setShowPages] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [recovery, setRecovery] = useState<TextDraft | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -151,6 +161,36 @@ export function NotebookPage({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [pageId, selectedId]);
+
+  // A text box that was being typed when the tab closed (PRD v1.0 §8.2 crash recovery).
+  useEffect(() => {
+    const d = loadTextDraft();
+    setRecovery(d && pageId && d.pageId === pageId && !isBlank(d.html) ? d : null);
+  }, [pageId]);
+
+  const restoreDraft = () => {
+    if (!recovery || !pageId) return;
+    const html = sanitizeHtml(recovery.html);
+    noteStore.editItems(pageId, (items) => {
+      const existing = recovery.itemId ? items.find((it) => it.id === recovery.itemId) : undefined;
+      if (existing && existing.kind === 'text') {
+        return items.map((it) => (it.id === existing.id ? { ...existing, html } : it));
+      }
+      return [
+        ...items,
+        {
+          id: newId('t-'),
+          kind: 'text',
+          x: recovery.x,
+          y: recovery.y,
+          width: DEFAULT_TEXT_WIDTH,
+          html,
+        },
+      ];
+    });
+    clearTextDraft();
+    setRecovery(null);
+  };
 
   if (!state.ready) return <p className="notice">Đang mở…</p>;
   if (!notebook || notebook.deletedAt !== null || !page || !pageId) {
@@ -243,6 +283,7 @@ export function NotebookPage({
         >
           <PagesIcon />
         </button>
+        <SaveState />
         <button
           type="button"
           className="btn btn--ghost nb-export"
@@ -307,6 +348,10 @@ export function NotebookPage({
                 ['h2', 'H', 'Tiêu đề'],
                 ['insertUnorderedList', '•', 'Danh sách'],
                 ['insertOrderedList', '1.', 'Danh sách số'],
+                ['checklist', '☑', 'Danh sách việc cần làm'],
+                ['quote', '❝', 'Trích dẫn'],
+                ['code', '</>', 'Code'],
+                ['link', '🔗', 'Liên kết'],
               ] as const
             ).map(([cmd, label, name]) => (
               <button
@@ -317,11 +362,7 @@ export function NotebookPage({
                 title={name}
                 onPointerDown={(e) => {
                   e.preventDefault();
-                  if (cmd === 'h2') {
-                    const inHeading =
-                      document.queryCommandValue('formatBlock').toLowerCase() === 'h2';
-                    document.execCommand('formatBlock', false, inHeading ? 'p' : 'h2');
-                  } else document.execCommand(cmd);
+                  runFormat(cmd);
                 }}
               >
                 {label}
@@ -638,6 +679,35 @@ export function NotebookPage({
               <TrashIcon />
             </button>
           </nav>
+          <PageMeta
+            pageId={pageId}
+            tags={page.tags ?? []}
+            notebookId={notebookId}
+            canMove={total > 1}
+            onMoved={(targetId) => {
+              const target = noteStore.getState().notebooks[targetId];
+              setMessage({ text: `Đã chuyển trang sang "${target?.title ?? ''}".` });
+              goTo(Math.max(1, index));
+            }}
+          />
+          {recovery && (
+            <div className="notice notice--card" role="status">
+              <span>Có đoạn chữ chưa lưu từ lần trước trên trang này.</span>
+              <button type="button" className="btn btn--small" onClick={restoreDraft}>
+                Khôi phục
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost btn--small"
+                onClick={() => {
+                  clearTextDraft();
+                  setRecovery(null);
+                }}
+              >
+                Bỏ
+              </button>
+            </div>
+          )}
         </main>
       </div>
 
@@ -656,4 +726,39 @@ export function NotebookPage({
       )}
     </div>
   );
+}
+
+/** Apply a text format to the text box being edited. */
+function runFormat(cmd: string): void {
+  const root = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>(
+    '[contenteditable="true"]',
+  );
+  switch (cmd) {
+    case 'h2': {
+      const inHeading = document.queryCommandValue('formatBlock').toLowerCase() === 'h2';
+      document.execCommand('formatBlock', false, inHeading ? 'p' : 'h2');
+      break;
+    }
+    case 'quote': {
+      const inQuote = document.queryCommandValue('formatBlock').toLowerCase() === 'blockquote';
+      document.execCommand('formatBlock', false, inQuote ? 'p' : 'blockquote');
+      break;
+    }
+    case 'code': {
+      const inCode = document.queryCommandValue('formatBlock').toLowerCase() === 'pre';
+      document.execCommand('formatBlock', false, inCode ? 'p' : 'pre');
+      break;
+    }
+    case 'checklist':
+      if (root) toggleChecklistAtSelection(root);
+      break;
+    case 'link': {
+      const href = safeHref(window.prompt('Địa chỉ liên kết (https://…)') ?? '');
+      if (href) document.execCommand('createLink', false, href);
+      break;
+    }
+    default:
+      document.execCommand(cmd);
+  }
+  root?.dispatchEvent(new Event('input', { bubbles: true }));
 }

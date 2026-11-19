@@ -25,6 +25,36 @@ describe('sanitizeHtml', () => {
   });
 });
 
+describe('PRD v1.0 blocks', () => {
+  it('keeps checklists, quotes, code and safe links only', () => {
+    const html =
+      '<ul data-checklist onclick="x"><li data-checked="true" class="a">xong</li><li data-checked="nope">chưa</li></ul>' +
+      '<blockquote style="x">trích</blockquote><pre>let a = 1;</pre>' +
+      '<a href="https://olaa.vn" onclick="x">ok</a> <a href="javascript:alert(1)">xấu</a> <a href="data:text/html,x">data</a>';
+    expect(sanitizeHtml(html)).toBe(
+      '<ul data-checklist=""><li data-checked="true">xong</li><li>chưa</li></ul>' +
+        '<blockquote>trích</blockquote><pre>let a = 1;</pre>' +
+        '<a href="https://olaa.vn" target="_blank" rel="noopener noreferrer">ok</a> xấu data',
+    );
+  });
+
+  it('turns them into export blocks with markers and styles', () => {
+    const blocks = toBlocks(
+      '<ul data-checklist=""><li data-checked="true">a</li><li>b</li></ul><blockquote>q</blockquote><pre>x\ny</pre><p><a href="https://x.y">l</a></p>',
+    );
+    expect(blocks.map((b) => [b.kind, b.marker, b.runs.map((r) => r.text).join('')])).toEqual([
+      ['li', '☑ ', 'a'],
+      ['li', '☐ ', 'b'],
+      ['quote', '', 'q'],
+      ['code', '', 'x'],
+      ['code', '', 'y'],
+      ['p', '', 'l'],
+    ]);
+    expect(blocks[5]?.runs[0]?.link).toBe(true);
+    expect(blocks[3]?.runs[0]?.code).toBe(true);
+  });
+});
+
 describe('toBlocks', () => {
   it('flattens headings, paragraphs and lists into styled runs', () => {
     const blocks = toBlocks(
@@ -36,7 +66,7 @@ describe('toBlocks', () => {
       ['li', '1. '],
       ['li', '2. '],
     ]);
-    expect(blocks[0]?.runs[0]).toEqual({ text: 'Bài 1', bold: true, italic: false });
+    expect(blocks[0]?.runs[0]).toMatchObject({ text: 'Bài 1', bold: true, italic: false });
     expect(blocks[1]?.runs.map((r) => [r.text, r.bold, r.italic])).toEqual([
       ['Học ', false, false],
       ['từ', true, false],

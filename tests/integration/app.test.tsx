@@ -122,3 +122,37 @@ describe('notebook editor', () => {
     expect(saved?.items).toHaveLength(1);
   });
 });
+
+describe('PRD v1.0: tags, search and save state', () => {
+  it('tags a page, finds it by tag and by typed text, and shows the save state', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole('button', { name: /sổ tay mới/i }));
+    await user.type(screen.getByLabelText(/tên sổ/i), 'Tiếng Anh');
+    await user.click(screen.getByRole('button', { name: /tạo sổ tay/i }));
+    await settle();
+
+    const nb = Object.values(noteStore.getState().notebooks)[0]!;
+    noteStore.editItems(nb.pageIds[0]!, (items) => [
+      ...items,
+      { id: 't1', kind: 'text', x: 10, y: 10, width: 200, html: '<p>apple: quả táo</p>' },
+    ]);
+
+    await user.type(screen.getByLabelText(/thêm thẻ cho trang/i), 'Từ vựng{Enter}');
+    expect(screen.getByRole('link', { name: '#Từ vựng' })).toBeInTheDocument();
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, PAGE_SAVE_DELAY_MS + 100));
+    });
+    expect(screen.getByText('Đã lưu trên máy')).toBeInTheDocument();
+
+    window.location.hash = '#/';
+    await settle();
+    await user.type(screen.getByRole('searchbox'), 'qua tao{Enter}');
+    await settle();
+    expect(screen.getByRole('heading', { name: 'Tìm kiếm' })).toBeInTheDocument();
+    expect(screen.getByText('quả táo')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /#Từ vựng/ }));
+    await settle();
+    expect(screen.getByText('1 kết quả', { exact: false })).toBeInTheDocument();
+  });
+});
