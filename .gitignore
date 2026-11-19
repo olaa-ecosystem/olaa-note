@@ -9,6 +9,9 @@ coverage/
 .env
 .env.*
 !.env.example
+# public Firebase web config (not secret), see .env.production
+!.env.production
+!.env.development
 # local tooling
 .DS_Store
 .vscode/*
