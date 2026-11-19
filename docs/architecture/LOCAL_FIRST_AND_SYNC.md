@@ -1,7 +1,8 @@
 # Local-first & Sync Strategy
 
 ## Status
-Design pending. No sync behavior should be assumed.
+Local storage implemented for the MVP (IndexedDB, see ADR-001). **Sync design still pending** —
+no sync behavior should be assumed.
 
 ## Decisions required
 - Which features work offline?

@@ -1,5 +1,9 @@
 # Technology Stack
 
+## MVP implementation
+See `docs/decisions/ADR-001-mvp-stack-and-local-first-storage.md` for what the MVP actually uses
+(React 18 + Vite 5 + TypeScript, plain CSS, IndexedDB, Vitest, npm). That ADR is pending approval.
+
 ## Proposed, not yet approved
 - TypeScript
 - React + Vite
