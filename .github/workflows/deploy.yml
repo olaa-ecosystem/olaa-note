@@ -1,0 +1,48 @@
+name: Deploy
+
+# Builds the app and deploys it to Firebase Hosting (project olaa-ecosystem, platform ADR-0004).
+# - Pull requests from this repository: a preview URL, posted as a comment on the PR.
+# - Pushes to main: the live site.
+# Needs the FIREBASE_SERVICE_ACCOUNT secret (organization or repository). Without it the
+# deploy step is skipped, so CI still passes.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Explain missing secret
+        if: env.FIREBASE_SA == ''
+        run: echo "::warning::FIREBASE_SERVICE_ACCOUNT is not set; skipping deploy."
+      - name: Deploy to Firebase Hosting
+        if: env.FIREBASE_SA != ''
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: olaa-ecosystem
+          channelId: ${{ github.event_name == 'push' && 'live' || '' }}
