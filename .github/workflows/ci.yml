@@ -19,6 +19,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # SEC-008: shipped dependencies must have no known high or critical vulnerability.
+      - run: pnpm run audit
+      # Dev tools (test runner, dev server) are reported but do not block.
+      - run: pnpm audit --audit-level critical || echo "::warning::dev dependency advisories, see log"
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
