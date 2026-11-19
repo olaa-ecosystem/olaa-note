@@ -27,6 +27,9 @@ let histories: Record<string, History> = {};
 const listeners = new Set<() => void>();
 const pendingPages = new Map<string, ReturnType<typeof setTimeout>>();
 let saveError: string | null = null;
+/** Writes started but not finished, for the visible save state (PRD v1.0 §8.2 Autosave). */
+let writesInFlight = 0;
+let lastSavedAt: number | null = null;
 
 function emit(): void {
   listeners.forEach((l) => l());
@@ -37,19 +40,36 @@ function reportSaveError(): void {
   emit();
 }
 
+/** Run a write and keep the save state in step with it. */
+function track(write: Promise<unknown>): void {
+  writesInFlight += 1;
+  write.then(
+    () => {
+      writesInFlight -= 1;
+      lastSavedAt = Date.now();
+      saveError = null;
+      emit();
+    },
+    () => {
+      writesInFlight -= 1;
+      reportSaveError();
+    },
+  );
+}
+
 function savePage(id: string): void {
   pendingPages.delete(id);
   const page = state.pages[id];
-  (page ? db.putPage(page) : db.deletePage(id)).catch(reportSaveError);
+  track(page ? db.putPage(page) : db.deletePage(id));
 }
 
 /** Write what changed between two states. */
 function persist(prev: NoteState, next: NoteState): void {
   for (const [id, nb] of Object.entries(next.notebooks)) {
-    if (prev.notebooks[id] !== nb) db.putNotebook(nb).catch(reportSaveError);
+    if (prev.notebooks[id] !== nb) track(db.putNotebook(nb));
   }
   for (const id of Object.keys(prev.notebooks)) {
-    if (!next.notebooks[id]) db.deleteNotebook(id).catch(reportSaveError);
+    if (!next.notebooks[id]) track(db.deleteNotebook(id));
   }
   for (const [id, page] of Object.entries(next.pages)) {
     if (prev.pages[id] !== page) {
@@ -66,7 +86,7 @@ function persist(prev: NoteState, next: NoteState): void {
     const timer = pendingPages.get(id);
     if (timer) clearTimeout(timer);
     pendingPages.delete(id);
-    db.deletePage(id).catch(reportSaveError);
+    track(db.deletePage(id));
   }
   if (removed.length > 0) {
     const gone = removed.map((id) => prev.pages[id]!).filter(Boolean);
@@ -115,6 +135,13 @@ export const noteStore = {
   canUndo: (pageId: string) => (histories[pageId]?.past.length ?? 0) > 0,
   canRedo: (pageId: string) => (histories[pageId]?.future.length ?? 0) > 0,
   saveError: () => saveError,
+
+  /** 'saving' while changes wait or are being written, 'error' if the last write failed. */
+  saveState(): 'saving' | 'saved' | 'error' {
+    if (saveError) return 'error';
+    return pendingPages.size > 0 || writesInFlight > 0 ? 'saving' : 'saved';
+  },
+  lastSavedAt: () => lastSavedAt,
 
   /** Write every pending page now (on tab hide / close). */
   flush(): void {

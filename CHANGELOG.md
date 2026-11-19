@@ -12,3 +12,10 @@ All notable changes will be recorded here. Until the first release, this reposit
   - PDF import as writable pages; images and file attachments.
   - Export to PDF with share sheet or download.
   - IndexedDB autosave, undo / redo; GitHub Actions CI; Firebase Hosting config.
+- Ecosystem PRD v1.0, TakeNote core (§8.2):
+  - Search across notebook titles, typed text, attachment names and tags; accent-insensitive; highlights matches.
+  - Page tags with filter, rename and merge.
+  - Favorite and archive notebooks; move a page to another notebook.
+  - Visible save state ("Đang lưu…", "Đã lưu trên máy", "Chưa lưu được").
+  - Recovery of text typed but not yet saved when the tab closed.
+  - Text boxes: checklists (tap to tick), quotes, code blocks and links (http/https/mailto only); exported to PDF.

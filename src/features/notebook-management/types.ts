@@ -8,6 +8,10 @@ export interface Notebook {
   /** Ordered page ids. */
   pageIds: string[];
   deletedAt: number | null;
+  /** Shown first in the library (PRD v1.0 §8.2). */
+  favorite?: boolean;
+  /** Hidden from the main library but kept and searchable (PRD v1.0 §8.2). */
+  archivedAt?: number | null;
 }
 
 export const NOTEBOOK_COLORS = [

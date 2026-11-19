@@ -27,6 +27,8 @@ export interface Page {
   background: PageBackground;
   items: Item[];
   updatedAt: number;
+  /** User labels (PRD v1.0 §8.2 Tags), lower-case-insensitive unique. */
+  tags?: string[];
 }
 
 export function pageSize(page: Pick<Page, 'size'>): { width: number; height: number } {

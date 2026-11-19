@@ -13,6 +13,10 @@ import {
   TEXT_SIZE,
   TEXT_BOLD_WEIGHT,
   TEXT_WEIGHT,
+  CODE_BG,
+  CODE_FONT,
+  LINK_COLOR,
+  QUOTE_BAR,
 } from '../rich-text-editor/textStyle';
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -41,9 +45,10 @@ async function drawFileImage(
   }
 }
 
-function font(block: Block, run: { bold: boolean; italic: boolean }): string {
+function font(block: Block, run: { bold: boolean; italic: boolean; code?: boolean }): string {
   const size = TEXT_SIZE[block.kind];
-  return `${run.italic ? 'italic ' : ''}${run.bold || block.kind === 'h2' ? TEXT_BOLD_WEIGHT : TEXT_WEIGHT} ${size}px ${TEXT_FONT}`;
+  const family = run.code || block.kind === 'code' ? CODE_FONT : TEXT_FONT;
+  return `${run.italic ? 'italic ' : ''}${run.bold || block.kind === 'h2' ? TEXT_BOLD_WEIGHT : TEXT_WEIGHT} ${size}px ${family}`;
 }
 
 /** Word-wrap styled runs into the box width and draw them. */
@@ -55,8 +60,14 @@ export function drawText(ctx: CanvasRenderingContext2D, box: TextBox): void {
   for (const block of toBlocks(box.html)) {
     const size = TEXT_SIZE[block.kind];
     const lineHeight = size * LINE_HEIGHT;
-    const indent = block.marker ? 24 : 0;
+    const indent = block.marker ? 24 : block.kind === 'quote' ? 16 : block.kind === 'code' ? 8 : 0;
     let x = 0;
+    if (block.kind === 'quote' || block.kind === 'code') {
+      ctx.fillStyle = block.kind === 'quote' ? QUOTE_BAR : CODE_BG;
+      if (block.kind === 'quote') ctx.fillRect(box.x + TEXT_PADDING, y, 3, lineHeight);
+      else ctx.fillRect(box.x + TEXT_PADDING, y, maxWidth, lineHeight);
+      ctx.fillStyle = TEXT_COLOR;
+    }
     if (block.marker) {
       ctx.font = font(block, { bold: false, italic: false });
       ctx.fillText(block.marker.trim(), box.x + TEXT_PADDING, y + (lineHeight - size) / 2);
@@ -71,7 +82,11 @@ export function drawText(ctx: CanvasRenderingContext2D, box: TextBox): void {
           y += lineHeight;
         }
         if (x === 0 && !word.trim()) continue;
-        ctx.fillText(word, box.x + TEXT_PADDING + indent + x, y + (lineHeight - size) / 2);
+        const wx = box.x + TEXT_PADDING + indent + x;
+        const wy = y + (lineHeight - size) / 2;
+        ctx.fillStyle = run.link ? LINK_COLOR : TEXT_COLOR;
+        ctx.fillText(word, wx, wy);
+        if (run.link && word.trim()) ctx.fillRect(wx, wy + size + 1, w, 1);
         x += w;
       }
     }

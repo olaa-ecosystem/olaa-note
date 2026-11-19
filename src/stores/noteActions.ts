@@ -240,3 +240,103 @@ export function orphanedFiles(removed: Page[], remaining: NoteState): string[] {
   const inUse = new Set(Object.values(remaining.pages).flatMap(filesOfPage));
   return [...new Set(removed.flatMap(filesOfPage))].filter((id) => !inUse.has(id));
 }
+
+// ---------- PRD v1.0 §8.2: favorites, archive, tags, move ----------
+
+export function setFavorite(
+  state: NoteState,
+  id: string,
+  favorite: boolean,
+  now: number,
+): NoteState {
+  return patchNotebook(state, id, { favorite }, now);
+}
+
+export function setArchived(
+  state: NoteState,
+  id: string,
+  archived: boolean,
+  now: number,
+): NoteState {
+  return patchNotebook(state, id, { archivedAt: archived ? now : null }, now);
+}
+
+export const MAX_TAG_LENGTH = 32;
+export const MAX_TAGS_PER_PAGE = 12;
+
+export function cleanTag(raw: string): string {
+  return raw.trim().replace(/^#+/, '').replace(/\s+/g, ' ').trim().slice(0, MAX_TAG_LENGTH);
+}
+
+function sameTag(a: string, b: string): boolean {
+  return a.localeCompare(b, 'vi', { sensitivity: 'accent' }) === 0;
+}
+
+export function addPageTag(state: NoteState, pageId: string, raw: string, now: number): NoteState {
+  const page = state.pages[pageId];
+  const tag = cleanTag(raw);
+  const tags = page?.tags ?? [];
+  if (!page || !tag || tags.length >= MAX_TAGS_PER_PAGE || tags.some((t) => sameTag(t, tag)))
+    return state;
+  return patchPage(state, pageId, { tags: [...tags, tag] }, now);
+}
+
+export function removePageTag(
+  state: NoteState,
+  pageId: string,
+  tag: string,
+  now: number,
+): NoteState {
+  const page = state.pages[pageId];
+  if (!page?.tags?.includes(tag)) return state;
+  return patchPage(state, pageId, { tags: page.tags.filter((t) => t !== tag) }, now);
+}
+
+/** All tags with how many pages use each, for filters. */
+export function allTags(state: NoteState): { tag: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const page of Object.values(state.pages)) {
+    const nb = state.notebooks[page.notebookId];
+    if (!nb || nb.deletedAt !== null) continue;
+    for (const t of page.tags ?? []) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  return [...counts]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => a.tag.localeCompare(b.tag, 'vi'));
+}
+
+/** Rename a tag everywhere; renaming onto an existing tag merges the two (PRD v1.0 §8.2). */
+export function renameTag(state: NoteState, from: string, to: string, now: number): NoteState {
+  const target = cleanTag(to);
+  if (!target || from === target) return state;
+  let next = state;
+  for (const page of Object.values(state.pages)) {
+    if (!page.tags?.includes(from)) continue;
+    const without = page.tags.filter((t) => t !== from);
+    const tags = without.some((t) => sameTag(t, target)) ? without : [...without, target];
+    next = patchPage(next, page.id, { tags }, now);
+  }
+  return next;
+}
+
+/** Move a page to the end of another notebook. The source keeps at least one page. */
+export function movePageToNotebook(
+  state: NoteState,
+  pageId: string,
+  targetId: string,
+  now: number,
+): NoteState {
+  const page = state.pages[pageId];
+  const from = page && state.notebooks[page.notebookId];
+  const to = state.notebooks[targetId];
+  if (!page || !from || !to || from.id === to.id || from.pageIds.length <= 1) return state;
+  return {
+    ...state,
+    pages: { ...state.pages, [pageId]: { ...page, notebookId: to.id, updatedAt: now } },
+    notebooks: {
+      ...state.notebooks,
+      [from.id]: { ...from, pageIds: from.pageIds.filter((id) => id !== pageId), updatedAt: now },
+      [to.id]: { ...to, pageIds: [...to.pageIds, pageId], updatedAt: now },
+    },
+  };
+}

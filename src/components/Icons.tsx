@@ -124,3 +124,21 @@ export const HandIcon = () => (
     <path d="M8 13V5.5a1.5 1.5 0 013 0V11M11 10.5V4a1.5 1.5 0 013 0v6.5M14 10V5.5a1.5 1.5 0 013 0V14a7 7 0 01-7 7h-.5a6 6 0 01-4.6-2.2L3.6 16a1.6 1.6 0 012.4-2.1L8 16" />
   </Svg>
 );
+export const ArchiveIcon = () => (
+  <Svg>
+    <rect x="3" y="4" width="18" height="5" rx="1.5" />
+    <path d="M5 9v10a1.5 1.5 0 001.5 1.5h11A1.5 1.5 0 0019 19V9M10 13h4" />
+  </Svg>
+);
+export const TagIcon = () => (
+  <Svg>
+    <path d="M3.5 12.5V5a1.5 1.5 0 011.5-1.5h7.5l8 8-9 9z" />
+    <circle cx="8" cy="8" r="1.5" />
+  </Svg>
+);
+export const SearchIcon = () => (
+  <Svg>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="M20 20l-4.2-4.2" />
+  </Svg>
+);
