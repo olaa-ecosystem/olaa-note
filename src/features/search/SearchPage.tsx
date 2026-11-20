@@ -92,8 +92,8 @@ export function SearchPage({ query, tag }: { query: string; tag: string | null }
 
       {(text.trim() || tag) && (
         <p className="muted small" aria-live="polite">
-          {hits.length === 0 ? 'Không tìm thấy kết quả.' : `${hits.length} kết quả.`} Chữ viết tay và
-          nội dung PDF chưa được tìm.
+          {hits.length === 0 ? 'Không tìm thấy kết quả.' : `${hits.length} kết quả.`} Chữ viết tay
+          và nội dung PDF chưa được tìm.
         </p>
       )}
 

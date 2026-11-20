@@ -55,7 +55,7 @@
   background: none;
   color: var(--primary);
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -70,7 +70,7 @@
   padding: 10px 16px;
   background: var(--primary-soft);
   color: var(--primary-dark);
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
 }
 .notice--error {
@@ -84,13 +84,16 @@
 }
 .field {
   display: grid;
+  min-width: 0;
   gap: 6px;
 }
 .field > span,
 fieldset legend {
-  font-weight: 800;
+  font-weight: 700;
 }
 .field input {
+  width: 100%;
+  min-width: 0;
   min-height: 52px;
   padding: 0 16px;
   border: 2px solid var(--line);
@@ -131,14 +134,14 @@ fieldset {
 .logo {
   color: var(--primary);
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 .logo span {
   margin-left: 2px;
   color: var(--accent);
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 /* ================= library ================= */
@@ -186,7 +189,7 @@ fieldset {
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   cursor: pointer;
 }
@@ -234,13 +237,13 @@ fieldset {
   border-left-color: var(--nb);
 }
 .cover__title {
-  font-weight: 800;
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 .cover__meta {
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .cover__delete {
   position: absolute;
@@ -320,7 +323,7 @@ fieldset {
   color: var(--ink);
   font: inherit;
   font-size: 19px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .nb-title:hover,
 .nb-title:focus {
@@ -362,7 +365,7 @@ fieldset {
   padding: 0 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .tool {
   display: grid;
@@ -375,7 +378,7 @@ fieldset {
   background: transparent;
   color: var(--ink-soft);
   font: inherit;
-  font-weight: 900;
+  font-weight: 800;
   font-size: 17px;
   cursor: pointer;
 }
@@ -422,7 +425,7 @@ fieldset {
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .nb-body {
@@ -474,7 +477,7 @@ fieldset {
   background: var(--ink);
   color: var(--surface);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .stage {
   flex: 1;
@@ -492,7 +495,7 @@ fieldset {
   margin: 14px auto 40px;
 }
 .page-bar__n {
-  font-weight: 800;
+  font-weight: 700;
   color: var(--ink-soft);
 }
 
@@ -545,7 +548,7 @@ fieldset {
   border: 2px solid #d8cfbe;
   border-radius: 10px;
   background: #f4f1ea;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 16px;
 }
 .item-file__name {
@@ -556,13 +559,7 @@ fieldset {
 .item-text {
   min-height: 34px;
   padding: 8px;
-  font-family:
-    'Nunito',
-    ui-rounded,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  font-family: var(--font);
   font-size: 18px;
   font-weight: 400;
   line-height: 1.45;
@@ -572,14 +569,14 @@ fieldset {
 .item-text h2 {
   margin: 0 0 4px;
   font-size: 26px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.45;
 }
 .item-text p {
   margin: 0 0 2px;
 }
 .item-text b {
-  font-weight: 800;
+  font-weight: 700;
 }
 .item-text ul,
 .item-text ol {
@@ -740,7 +737,7 @@ fieldset {
   background: var(--surface);
   color: var(--ink);
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 .chip.is-selected {
@@ -752,7 +749,7 @@ fieldset {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 600;
 }
 .toggle-line input {
   width: 20px;
@@ -796,7 +793,7 @@ fieldset {
 .result__tags {
   color: var(--primary);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
 }
 .tag-admin {
   list-style: none;
@@ -846,7 +843,7 @@ fieldset {
   gap: 6px;
   color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 .save-state__dot {
@@ -886,7 +883,7 @@ fieldset {
   padding: 2px 4px 2px 10px;
   border-radius: 999px;
   background: var(--primary-soft);
-  font-weight: 800;
+  font-weight: 700;
   font-size: 14px;
 }
 .tag a {

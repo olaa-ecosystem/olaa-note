@@ -1,5 +1,7 @@
 /** Text box typography, shared by the editor (CSS variables) and exports (canvas). */
-export const TEXT_FONT = '"Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif';
+/** Apple's San Francisco through the system font; Segoe UI / Roboto elsewhere. */
+export const TEXT_FONT =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, "Segoe UI", Roboto, Arial, sans-serif';
 export const TEXT_PADDING = 8;
 export const TEXT_SIZE = { p: 18, li: 18, h2: 26, quote: 18, code: 15 } as const;
 export const CODE_FONT =
@@ -11,4 +13,4 @@ export const LINE_HEIGHT = 1.45;
 export const TEXT_COLOR = '#22223b';
 export const DEFAULT_TEXT_WIDTH = 320;
 export const TEXT_WEIGHT = 400;
-export const TEXT_BOLD_WEIGHT = 800;
+export const TEXT_BOLD_WEIGHT = 700;
