@@ -109,7 +109,20 @@ function drawFileCard(ctx: CanvasRenderingContext2D, item: Extract<Item, { kind:
   ctx.fillText(`📎 ${name}`, item.x + 14, item.y + 28);
 }
 
+/**
+ * Canvas text only uses fonts the browser has already loaded. Where SF is not on the device,
+ * the bundled Inter is used, so load its faces before drawing.
+ */
+async function loadExportFonts(): Promise<void> {
+  if (typeof document === 'undefined' || !document.fonts) return;
+  const faces = [TEXT_WEIGHT, TEXT_BOLD_WEIGHT].flatMap((w) => [`${w}`, `italic ${w}`]);
+  await Promise.all(
+    faces.map((f) => document.fonts.load(`${f} 18px ${TEXT_FONT}`, 'Aa ệ').catch(() => [])),
+  );
+}
+
 export async function renderPage(page: Page, scale: number): Promise<HTMLCanvasElement> {
+  await loadExportFonts();
   const { width, height } = pageSize(page);
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(width * scale);

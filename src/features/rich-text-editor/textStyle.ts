@@ -1,7 +1,7 @@
 /** Text box typography, shared by the editor (CSS variables) and exports (canvas). */
-/** Apple's San Francisco through the system font; Segoe UI / Roboto elsewhere. */
+/** Apple's San Francisco on Apple devices; Inter (bundled, closest to SF) elsewhere. */
 export const TEXT_FONT =
-  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, "Segoe UI", Roboto, Arial, sans-serif';
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif';
 export const TEXT_PADDING = 8;
 export const TEXT_SIZE = { p: 18, li: 18, h2: 26, quote: 18, code: 15 } as const;
 export const CODE_FONT =
