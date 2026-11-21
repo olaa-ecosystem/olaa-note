@@ -3,6 +3,9 @@
 All notable changes will be recorded here. Until the first release, this repository is in pre-development foundation stage.
 
 ## Unreleased
+
+- 2026-11-21: repository foundation completed: `CLAUDE.md` (rules for AI agents), `LICENSE` (proprietary), `.github/CODEOWNERS`, issue template config with a private security report link, `.gitattributes`, `.nvmrc` (Node 22).
+- 2026-11-21: interface removed to import a new frontend later; only logic, data and tests remain (see README).
 - Repository foundation initialized.
 - MVP web app, PRD P0 (React + Vite + TypeScript, platform ADR-0003):
   - Notebooks with cover colour and paper; trash with 30-day restore.
