@@ -1,5 +1,3 @@
-import { render, screen } from '@testing-library/react';
-import { LocalePicker } from './LocalePicker';
 import { getLocale, pick, setLocale, tr } from './locale';
 
 describe('interface language', () => {
@@ -17,14 +15,5 @@ describe('interface language', () => {
     expect(pick(['Chỉ tiếng Việt', ''])).toBe('Chỉ tiếng Việt');
     expect(localStorage.getItem('olaa-takenote/locale')).toBe('en');
     expect(document.documentElement.lang).toBe('en');
-  });
-
-  it('shows the picker with the current choice selected', () => {
-    render(<LocalePicker />);
-    expect(screen.getByRole('radio', { name: 'Tiếng Việt' })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
-    expect(screen.getByRole('radiogroup', { name: 'Ngôn ngữ giao diện' })).toBeInTheDocument();
   });
 });

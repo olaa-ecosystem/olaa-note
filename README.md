@@ -1,85 +1,46 @@
 # Olaa TakeNote
 
-Type and handwrite on the same page, on iPad first (TakeNote PRD in
-`olaa-platform/architecture/03-olaa-takenote/requirements/PRD.md`).
+Gõ và viết tay trên cùng một trang, ưu tiên iPad. PRD: `olaa-platform/architecture/03-olaa-takenote/requirements/PRD.md`. Dữ liệu lưu trên máy bằng IndexedDB; chưa có đăng nhập và đồng bộ.
 
-## Status
+## Trạng thái giao diện
 
-MVP web app (pre-release), PRD P0. Same stack as `olaa-language` and `olaa-habits`
-(platform ADR-0003). Everything is stored on this device in IndexedDB; sign-in and cloud sync
-(P1) are not built yet.
+**Giao diện (frontend) đã được gỡ khỏi repository ngày 2026-11-21** theo yêu cầu của chủ dự án, để import bộ giao diện mới sau. Repository hiện chỉ giữ phần logic và dữ liệu, có test. `index.html` có sẵn `<div id="root">`; `src/main.ts` chỉ khởi chạy các dịch vụ dữ liệu. Giao diện mới gắn vào `#root` và dùng các module bên dưới.
 
-Implemented:
-- **Notebooks:** create (title, cover colour, paper), rename, trash with 30-day restore,
-  delete forever with confirmation.
-- **Pages:** blank, lined, grid or dot paper; add, duplicate, move, delete (never the last),
-  thumbnails.
-- **One page, typing and handwriting together:** text boxes with bold, italic, heading and
-  lists; pen and highlighter with pressure, 8 colours and 3 widths; stroke eraser.
-- **Apple Pencil on the web:** Pointer Events with coalesced samples. Pen and mouse draw;
-  fingers scroll unless "Vẽ bằng ngón tay" is on, so a resting palm does not draw.
-- **PDF and slides:** import a PDF as pages (portrait and landscape keep their shape) and
-  write on top; the original is never modified. Up to 100 MB.
-- **Attachments:** images (move and resize) and any file (open from the page).
-- **Export:** a page or the whole notebook to PDF, shared through the system share sheet where
-  available, otherwise downloaded.
-- **Never lose work:** autosave within 300 ms, saved again when the tab hides; undo and redo
-  per page (also Ctrl/Cmd+Z).
-- **UI:** Vietnamese, iPad / phone / desktop, keyboard and screen-reader labels.
+Yêu cầu giao diện: `olaa-platform/architecture/PRD/UIUX_PRD_v0.1.md` và `UI_BUTTONS_PRD_v0.1.md`.
 
-Not yet (PRD P1+): Olaa ID sign-in and sync, links with Olaa Language, search, handwriting
-recognition, tags, version history, lasso and ruler.
-
-## Project layout
+## Phần logic còn lại
 
 ```
 src/
-  app/                    App root, hash router
-  components/             Icons, stored image, confirm dialog
   features/
-    notebook-management/  Notebook model, notebook screen, multi-step commands (03.01)
-    page-management/      Page model, paper patterns (03.07)
-    digital-canvas/       Items, eraser, page layers and editor (03.04)
-    inking-tools/         Stroke outlines, colours and widths (03.06)
-    rich-text-editor/     Sanitising, text layout for export (03.03)
-    document-annotation/  PDF import (03.08)
-    export-sharing/       Page rendering, PDF export, share (03.13)
-    history-recovery/     Undo / redo (03.12)
-    library/              Notebook library and trash
-  services/               IndexedDB
-  stores/                 Pure actions and the persistent store
-tests/integration/        App-level tests (fake IndexedDB)
+    notebook-management/     Sổ tay, trang, đính kèm tệp, chuyển trang giữa các sổ
+    page-management/         Loại giấy, kích thước trang
+    digital-canvas/          Các mục trên trang (nét vẽ, chữ, ảnh, tệp)
+    inking-tools/            Đường nét bút
+    rich-text-editor/        Lọc HTML an toàn, định dạng chữ, chuyển chữ thành khối để xuất
+    document-annotation/     Nhập PDF thành trang
+    export-sharing/          Vẽ trang ra canvas, xuất PDF, chia sẻ hoặc tải về
+    history-recovery/        Hoàn tác/làm lại, khôi phục chữ chưa lưu
+    search/                  Tìm theo tên, chữ gõ, tên tệp, thẻ
+  stores/                    Trạng thái sổ tay (hàm thuần) và store
+  services/db.ts             IndexedDB
+  i18n/                      Song ngữ Việt/Anh: tr(vi, en)
 ```
 
-## Development
+## Phát triển
 
-Requires Node 20+ and pnpm 9.
+Cần Node 20+ và pnpm 9.
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:5173
-pnpm test
+pnpm test         # test phần logic
 pnpm lint
 pnpm typecheck
-pnpm build
+pnpm build        # dist/ (chưa có giao diện)
 ```
 
-Deploy to Firebase Hosting site `olaa-takenote` (create it once with
-`npx firebase-tools hosting:sites:create olaa-takenote`):
+Deploy: Firebase Hosting site `olaa-takenote` (project `olaa-ecosystem`), GitHub Actions deploy bản xem trước cho PR và bản chính khi merge `main` (`.github/workflows/deploy.yml`). Luật Firestore nằm ở `olaa-platform/infrastructure/firebase/`.
 
-```bash
-pnpm build && npx firebase-tools deploy --only hosting
-```
+## Bảo mật
 
-## Libraries
-
-| Library | Use | Licence |
-|---|---|---|
-| pdfjs-dist | Render PDF pages on import | Apache-2.0 |
-| pdf-lib | Build exported PDFs | MIT |
-| perfect-freehand | Pressure-sensitive stroke outlines | MIT |
-
-## Security
-
-See `SECURITY.md` and `docs/security/SECURITY_BASELINE.md`. Text box HTML is sanitised to
-b, i, h2, ul, ol, li, p and br with no attributes before it is stored or shown.
+Xem `SECURITY.md`.

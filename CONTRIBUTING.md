@@ -1,7 +1,7 @@
 # Contributing
 
 ## Before changes
-1. Read `README.md`, `docs/product/SCOPE.md`, and `docs/architecture/ARCHITECTURE.md`.
+1. Read `README.md` and the architecture and PRD documents in `olaa-ecosystem/olaa-platform` (`architecture/`).
 2. Confirm the change belongs to this product.
 3. Create or update an issue for non-trivial work.
 
